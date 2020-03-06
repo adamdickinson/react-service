@@ -2,8 +2,9 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "declaration": true,
     "jsx": "react",
-    "target": "es2018",
-    "noEmit": true
-  }
+    "target": "es2018"
+  },
+  "files": ["src/index.tsx"]
 }
