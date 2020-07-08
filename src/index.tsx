@@ -4,14 +4,17 @@ export interface ServiceProps {
   fallback?: React.FC | string
 }
 
-const createService = <A, P = {}>(useApi: (props: P) => A) => {
-  type ServiceHook = () => A
-  type ServiceComponent = React.FC<P & ServiceProps>
+type ServiceComponent<P> = React.FC<P & ServiceProps>
+type ServiceHook<A> = () => A
+
+const createService = <A, P = {}>(
+  useApi: (props: P) => A
+): [ServiceComponent<P>, ServiceHook<A>] => {
 
   const Context = createContext<A>(undefined)
   const { Provider } = Context
 
-  const Service: ServiceComponent = props => {
+  const Service: ServiceComponent<P> = props => {
     const Fallback = props.fallback
     const api = useApi(props)
     if (api !== undefined) {
@@ -21,9 +24,8 @@ const createService = <A, P = {}>(useApi: (props: P) => A) => {
     return Fallback ? <Fallback /> : null
   }
 
-  const useService: ServiceHook = () => useContext(Context)
-  const output: [ServiceComponent, ServiceHook] = [Service, useService]
-  return output
+  const useService: ServiceHook<A> = () => useContext(Context)
+  return [Service, useService]
 }
 
 export default createService
