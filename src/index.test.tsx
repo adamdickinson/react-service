@@ -4,8 +4,8 @@ import React, { useCallback, useState } from 'react'
 
 import { fireEvent, render } from '@testing-library/react'
 
-import { ServiceProps } from './';
-import createService from '.'
+import { ServiceProps } from './'
+import {createService, extendService} from '.'
 
 interface User {
   name: string
@@ -19,6 +19,7 @@ interface AuthAPI {
 
 describe('createService', () => {
   let AuthService: React.FC<ServiceProps>
+  let authContext: React.Context<AuthAPI>
   let useAuthAPI: () => AuthAPI
   let useAuthService: () => AuthAPI
   let SampleComponent: React.FC
@@ -42,7 +43,9 @@ describe('createService', () => {
       return { user, logIn, logOut }
     }
 
-    [AuthService, useAuthService] = createService<AuthAPI>(useAuthAPI)
+    [AuthService, useAuthService, authContext] = createService<AuthAPI>(
+      useAuthAPI
+    )
 
     SampleComponent = () => {
       const { user, logIn, logOut } = useAuthService()
@@ -81,5 +84,27 @@ describe('createService', () => {
     expect(name).toHaveTextContent('Hi there!')
     expect(button).toHaveTextContent('Log in')
     fireEvent.click(button)
+  })
+
+  it('should create an alternate service', () => {
+    const useAltAPI = () => ({
+      user: { name: 'alt' },
+      logIn: () => Promise.resolve({ name: 'logged out'}),
+      logOut: () => {},
+    })
+
+    const AltService = extendService<AuthAPI>(authContext, useAltAPI)
+
+    const { debug, getByTestId } = render(
+      <AltService>
+        <SampleComponent />
+      </AltService>
+    )
+
+    const name = getByTestId('welcome')
+    const button = getByTestId('logInOut')
+
+    expect(name).toHaveTextContent('Hi there alt!')
+    expect(button).toHaveTextContent('Log out')
   })
 })

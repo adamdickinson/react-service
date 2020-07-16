@@ -1,6 +1,6 @@
 {
   "name": "@adamdickinson/react-service",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Expose internal application APIs as a service.",
   "main": "./dist/index.js",
   "repository": "https://github.com/adamdickinson/react-service",
@@ -15,9 +15,6 @@
     "prepare": "yarn build",
     "test": "jest"
   },
-  "dependencies": {
-    "react": "^16.13.1"
-  },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.0",
     "@testing-library/react": "^10.4.4",
@@ -26,9 +23,13 @@
     "bili": "^5.0.5",
     "jest": "^26.1.0",
     "np": "^6.3.1",
+    "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "rollup-plugin-typescript2": "^0.27.1",
     "ts-jest": "^26.1.1",
     "typescript": "^3.9.6"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1"
   }
 }
