@@ -18,11 +18,12 @@ interface AuthAPI {
 }
 
 describe('createService', () => {
-  let AuthService: React.FC<ServiceProps>
+  let AuthService: React.FC<ServiceProps<AuthAPI>>
   let authContext: React.Context<AuthAPI>
   let useAuthAPI: () => AuthAPI
   let useAuthService: () => AuthAPI
-  let SampleComponent: React.FC
+  let AuthScreen: React.FC
+  let AuthScreenUsingProps: React.FC<AuthAPI>
 
   beforeAll(() => {
     useAuthAPI = () => {
@@ -47,8 +48,22 @@ describe('createService', () => {
       useAuthAPI
     )
 
-    SampleComponent = () => {
+    AuthScreen = () => {
       const { user, logIn, logOut } = useAuthService()
+      return (
+        <div>
+          <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
+          <button
+            onClick={user ? logOut : () => logIn('', '')}
+            data-testid="logInOut"
+          >
+            Log {user ? 'out' : 'in'}
+          </button>
+        </div>
+      )
+    }
+
+    AuthScreenUsingProps = ({ user, logIn, logOut }) => {
       return (
         <div>
           <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
@@ -64,9 +79,9 @@ describe('createService', () => {
   })
 
   it('should create a basic service', () => {
-    const { debug, getByTestId } = render(
+    const { getByTestId } = render(
       <AuthService>
-        <SampleComponent />
+        <AuthScreen />
       </AuthService>
     )
 
@@ -89,15 +104,15 @@ describe('createService', () => {
   it('should create an alternate service', () => {
     const useAltAPI = () => ({
       user: { name: 'alt' },
-      logIn: () => Promise.resolve({ name: 'logged out'}),
+      logIn: () => Promise.resolve({ name: 'logged out' }),
       logOut: () => {},
     })
 
     const AltService = extendService<AuthAPI>(authContext, useAltAPI)
 
-    const { debug, getByTestId } = render(
+    const { getByTestId } = render(
       <AltService>
-        <SampleComponent />
+        <AuthScreen />
       </AltService>
     )
 
@@ -106,5 +121,26 @@ describe('createService', () => {
 
     expect(name).toHaveTextContent('Hi there alt!')
     expect(button).toHaveTextContent('Log out')
+  })
+
+  it('should pass api to child function', () => {
+    const { getByTestId } = render(
+      <AuthService>{api => <AuthScreenUsingProps {...api} />}</AuthService>
+    )
+
+    const name = getByTestId('welcome')
+    const button = getByTestId('logInOut')
+
+    expect(name).toHaveTextContent('Hi there!')
+    expect(button).toHaveTextContent('Log in')
+    fireEvent.click(button)
+
+    expect(name).toHaveTextContent('Hi there you!')
+    expect(button).toHaveTextContent('Log out')
+    fireEvent.click(button)
+
+    expect(name).toHaveTextContent('Hi there!')
+    expect(button).toHaveTextContent('Log in')
+    fireEvent.click(button)
   })
 })

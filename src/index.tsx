@@ -1,17 +1,19 @@
 import React, { createContext, useContext } from 'react'
 
-export interface ServiceProps {
+export type ServiceRenderFunction<A> = (api: A) => React.ReactNode
+
+export interface ServiceProps<A> {
   fallback?: React.FC | string
+  children: React.ReactNode | ServiceRenderFunction<A>
 }
 
-type ServiceComponent<P> = React.FC<P & ServiceProps>
+type ServiceComponent<A, P> = React.FC<P & ServiceProps<A>>
 type ServiceHook<A> = () => A
 
 export const createService = <A, P = {}>(
   useApi: (props: P) => A
-): [ServiceComponent<P>, ServiceHook<A>, React.Context<A>] => {
+): [ServiceComponent<A, P>, ServiceHook<A>, React.Context<A>] => {
   const context = createContext<A>(undefined)
-  const { Provider } = context
 
   const ServiceComponent = createServiceComponent<A, P>(context, useApi)
 
@@ -21,14 +23,23 @@ export const createService = <A, P = {}>(
 
 const createServiceComponent = <A, P = {}>(
   context: React.Context<A>,
-  useApi: (props: P) => A
-): ServiceComponent<P> => {
+  useApi: (props: Omit<P, 'children' | 'fallback'>) => A
+): ServiceComponent<A, P> => {
   const { Provider } = context
-  const Service: ServiceComponent<P> = props => {
-    const Fallback = props.fallback
+  const Service: ServiceComponent<A, P> = ({
+    children,
+    fallback: Fallback,
+    ...props
+  }) => {
     const api = useApi(props)
     if (api !== undefined) {
-      return <Provider value={api}>{props.children}</Provider>
+      const renderChildren =
+        typeof children === 'function' && (children as ServiceRenderFunction<A>)
+      return (
+        <Provider value={api}>
+          {renderChildren ? renderChildren(api) : children}
+        </Provider>
+      )
     }
 
     return Fallback ? <Fallback /> : null
