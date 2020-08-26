@@ -1,6 +1,6 @@
 {
   "name": "@adamdickinson/react-service",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Expose internal application APIs as a service.",
   "main": "./dist/index.js",
   "repository": "https://github.com/adamdickinson/react-service",
