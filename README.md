@@ -110,8 +110,12 @@ interface AuthAPI {
   user?: User
 }
 
+interface AuthProps {
+  serverUrl: string;
+}
+
 // Define our API as a hook so we can leverage React functionality
-const useAuthAPI = ({ serverUrl: string }) => {
+const useAuthAPI = ({ serverUrl }: AuthProps) => {
   const [user, setUser] = useState<User>()
 
   const onChangeUser = (newUser?: User) => {
@@ -144,7 +148,7 @@ const useAuthAPI = ({ serverUrl: string }) => {
   return api
 }
 
-const [AuthService, useAuth] = createService<AuthAPI>(useAuthAPI)
+const [AuthService, useAuth] = createService<AuthAPI, AuthProps>(useAuthAPI)
 
 export { AuthService, useAuth }
 ```
