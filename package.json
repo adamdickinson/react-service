@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "bili",
+    "ci": "yarn install --frozen-lockfile",
     "prepare": "yarn build",
     "test": "jest"
   },
