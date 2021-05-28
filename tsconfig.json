@@ -5,7 +5,8 @@
     "declaration": true,
     "jsx": "react",
     "target": "es2018",
-    "noEmit": true
+    "noEmit": true,
+    "outDir": "./dist/"
   },
   "files": ["src/index.tsx"]
 }
