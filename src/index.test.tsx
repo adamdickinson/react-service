@@ -16,7 +16,7 @@ describe('createService', () => {
 
     const logIn = useCallback(
       async (username: string, _password: string) => {
-        setUser({ name: 'you' })
+        setUser({ name: username })
         return user
       },
       [setUser]
@@ -43,7 +43,7 @@ describe('createService', () => {
       <div>
         <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
         <button
-          onClick={user ? logOut : () => logIn('', '')}
+          onClick={user ? logOut : () => logIn('joe', '')}
           data-testid="logInOut"
         >
           Log {user ? 'out' : 'in'}
@@ -59,7 +59,7 @@ describe('createService', () => {
       <div>
         <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
         <button
-          onClick={user ? logOut : () => logIn('', '')}
+          onClick={user ? logOut : () => logIn('joe', '')}
           data-testid="logInOut"
         >
           Log {user ? 'out' : 'in'}
@@ -82,7 +82,7 @@ describe('createService', () => {
     expect(button).toHaveTextContent('Log in')
     fireEvent.click(button)
 
-    expect(name).toHaveTextContent('Hi there you!')
+    expect(name).toHaveTextContent('Hi there joe!')
     expect(button).toHaveTextContent('Log out')
     fireEvent.click(button)
 
@@ -125,7 +125,7 @@ describe('createService', () => {
     expect(button).toHaveTextContent('Log in')
     fireEvent.click(button)
 
-    expect(name).toHaveTextContent('Hi there you!')
+    expect(name).toHaveTextContent('Hi there joe!')
     expect(button).toHaveTextContent('Log out')
     fireEvent.click(button)
 
