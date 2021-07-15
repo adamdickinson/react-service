@@ -10,7 +10,7 @@ export default {
     sourcemap: true,
   },
   plugins: [
-    typescript({ target: 'es5' }),
+    typescript({ target: 'es5', tsconfig: 'tsconfig.main.json' }),
     cleanup({ comments: 'none' }),
     terser(),
   ],

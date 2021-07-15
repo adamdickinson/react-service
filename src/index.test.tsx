@@ -4,79 +4,69 @@ import React, { useCallback, useState } from 'react'
 
 import { fireEvent, render } from '@testing-library/react'
 
-import { ServiceProps } from './'
 import {createService, extendService} from '.'
 
 interface User {
   name: string
 }
 
-interface AuthAPI {
-  user?: User
-  logIn: (username: string, password: string) => Promise<User>
-  logOut: () => void
-}
-
 describe('createService', () => {
-  let AuthService: React.FC<ServiceProps<AuthAPI>>
-  let authContext: React.Context<AuthAPI>
-  let useAuthAPI: () => AuthAPI
-  let useAuthService: () => AuthAPI
-  let AuthScreen: React.FC
-  let AuthScreenUsingProps: React.FC<AuthAPI>
+  const useAuthAPI = () => {
+    const [user, setUser] = useState<User | undefined>(undefined)
 
-  beforeAll(() => {
-    useAuthAPI = () => {
-      const [user, setUser] = useState<User>(undefined)
-
-      const logIn = useCallback(
-        async (username: string, password: string) => {
-          setUser({ name: 'you' })
-          return user
-        },
-        [setUser]
-      )
-
-      const logOut = useCallback(() => {
-        setUser(undefined)
-      }, [setUser])
-
-      return { user, logIn, logOut }
-    }
-
-    [AuthService, useAuthService, authContext] = createService<AuthAPI>(
-      useAuthAPI
+    const logIn = useCallback(
+      async (username: string, _password: string) => {
+        setUser({ name: 'you' })
+        return user
+      },
+      [setUser]
     )
 
-    AuthScreen = () => {
-      const { user, logIn, logOut } = useAuthService()
-      return (
-        <div>
-          <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
-          <button
-            onClick={user ? logOut : () => logIn('', '')}
-            data-testid="logInOut"
-          >
-            Log {user ? 'out' : 'in'}
-          </button>
-        </div>
-      )
+    const logOut = useCallback(() => {
+      setUser(undefined)
+    }, [setUser])
+
+    return { user, logIn, logOut }
+  }
+
+
+  const [AuthService, useAuthService, authContext] = createService(useAuthAPI)
+
+  const AuthScreen = () => {
+    const auth = useAuthService()
+    if (!auth) {
+      return <div>Auth service not found</div>
     }
 
-    AuthScreenUsingProps = ({ user, logIn, logOut }) => {
-      return (
-        <div>
-          <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
-          <button
-            onClick={user ? logOut : () => logIn('', '')}
-            data-testid="logInOut"
-          >
-            Log {user ? 'out' : 'in'}
-          </button>
-        </div>
-      )
-    }
-  })
+    const { user, logIn, logOut } = auth
+    return (
+      <div>
+        <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
+        <button
+          onClick={user ? logOut : () => logIn('', '')}
+          data-testid="logInOut"
+        >
+          Log {user ? 'out' : 'in'}
+        </button>
+      </div>
+    )
+  }
+
+  type Props = ReturnType<typeof useAuthService>
+
+  const AuthScreenUsingProps: React.FC<Props> = ({ user, logIn, logOut }) => {
+    return (
+      <div>
+        <h1 data-testid="welcome">Hi there{user ? ` ${user.name}` : ''}!</h1>
+        <button
+          onClick={user ? logOut : () => logIn('', '')}
+          data-testid="logInOut"
+        >
+          Log {user ? 'out' : 'in'}
+        </button>
+      </div>
+    )
+  }
 
   it('should create a basic service', () => {
     const { getByTestId } = render(
@@ -108,7 +98,7 @@ describe('createService', () => {
       logOut: () => {},
     })
 
-    const AltService = extendService<AuthAPI>(authContext, useAltAPI)
+    const AltService = extendService(authContext, useAltAPI)
 
     const { getByTestId } = render(
       <AltService>
@@ -142,5 +132,14 @@ describe('createService', () => {
     expect(name).toHaveTextContent('Hi there!')
     expect(button).toHaveTextContent('Log in')
     fireEvent.click(button)
+  })
+
+  it('should return undefined if service is not available', () => {
+    const { getByText } = render(
+      <AuthScreen />
+    )
+
+    const serviceNotFoundMessage = getByText('Auth service not found')
+    expect(serviceNotFoundMessage).toBeInTheDocument()
   })
 })

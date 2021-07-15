@@ -4,9 +4,9 @@
     "moduleResolution": "node",
     "declaration": true,
     "jsx": "react",
+    "strict": true,
     "target": "es2018",
     "noEmit": true,
     "outDir": "./dist/"
-  },
-  "files": ["src/index.tsx"]
+  }
 }

@@ -8,12 +8,12 @@ export interface ServiceProps<A> {
 }
 
 type ServiceComponent<A, P> = React.FC<P & ServiceProps<A>>
-type ServiceHook<A> = () => A
+type ServiceHook<A> = () => A | undefined
 
 export const createService = <A, P = {}>(
   useApi: (props: P) => A
-): [ServiceComponent<A, P>, ServiceHook<A>, React.Context<A>] => {
-  const context = createContext<A>(undefined)
+): [ServiceComponent<A, P>, ServiceHook<A>, React.Context<A | undefined>] => {
+  const context = createContext<A | undefined>(undefined)
 
   const ServiceComponent = createServiceComponent<A, P>(context, useApi)
 
@@ -22,8 +22,8 @@ export const createService = <A, P = {}>(
 }
 
 const createServiceComponent = <A, P = {}>(
-  context: React.Context<A>,
-  useApi: (props: Omit<P, 'children' | 'fallback'>) => A
+  context: React.Context<A | undefined>,
+  useApi: (props: P) => A
 ): ServiceComponent<A, P> => {
   const { Provider } = context
   const Service: ServiceComponent<A, P> = ({
@@ -31,7 +31,7 @@ const createServiceComponent = <A, P = {}>(
     fallback: Fallback,
     ...props
   }) => {
-    const api = useApi(props)
+    const api = useApi(props as unknown as P)
     if (api !== undefined) {
       const renderChildren =
         typeof children === 'function' && (children as ServiceRenderFunction<A>)
