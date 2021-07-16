@@ -56,7 +56,7 @@ As a contrived example, let's say we want to make a random number service.
 
 ```ts
 // 1. We define the service
-const [NumberProvider, useNumber] = createService(({ max: number }) => {
+const [RandomProvider, useRandom] = createService(({ max }: { max: number }) => {
   const [number, setNumber] = useState<number>()
   return {
     update: () => setNumber(Math.floor(Math.random() * max)),
@@ -64,23 +64,25 @@ const [NumberProvider, useNumber] = createService(({ max: number }) => {
   }
 })
 
-// 2. We use the service with the `useNumber` hook in some components
+// 2. We use the service with the `useRandom` hook in some components
 const Displayer = () => {
-  const { number } = useNumber()
-  return <p>The number is {number}</p>
+  const random = useRandom()
+  if (!random) return null
+  return <p>The number is {random.number}</p>
 }
 
 const Changer = () => {
-  const { update } = useNumber()
-  return <button onClick={update}>Randomize!</button>
+  const random = useRandom()
+  if (!random) return null
+  return <button onClick={random.update}>Randomize!</button>
 }
 
-// 3. We expose the service to those components that use it by rendering a parent `NumberProvider` component
+// 3. We expose the service to those components that use it by rendering a parent `RandomProvider` component
 ReactDOM.render(
-  <NumberProvider max={100}>
+  <RandomProvider max={100}>
     <Displayer />
     <Changer />
-  </NumberProvider>,
+  </RandomProvider>,
   document.getElementById('root')
 )
 ```
@@ -111,7 +113,7 @@ interface AuthAPI {
 }
 
 // Define our API as a hook so we can leverage React functionality
-const useAuthAPI = ({ serverUrl: string }) => {
+const useAuthAPI = ({ serverUrl }: { serverUrl: string }) => {
   const [user, setUser] = useState<User>()
 
   const onChangeUser = (newUser?: User) => {
@@ -173,14 +175,14 @@ import { useAuth } from './services/auth'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 
 export default () => {
-  const { user } = useAuth()
+  const auth = useAuth()
   return (
     <Router>
       <Switch>
         // Unauthed routes
-        {!user && <Route path="/" component={LogIn} />}
+        {!auth?.user && <Route path="/" component={LogIn} />}
         // Authed routes
-        {!!user && <Route path="/" component={Welcome} />}
+        {!!auth?.user && <Route path="/" component={Welcome} />}
       </Switch>
     </Router>
   )
@@ -193,14 +195,14 @@ import { useAuth } from './services/auth'
 import { useState } from 'react'
 
 export default () => {
-  const { logIn } = useAuth()
+  const auth = useAuth()
   const [loggingIn, setLoggingIn] = useState(false)
   const [error, setError] = useState('')
 
-  const onLogIn = async () => {
+  const login = async () => {
     setLoggingIn(true)
     try {
-      await logIn('me', 'my-pass')
+      await auth.logIn('me', 'my-pass')
     } catch (error) {
       setError(error?.message || error)
       setLoggingIn(false)
@@ -210,7 +212,7 @@ export default () => {
   return (
     <>
       {error && <p>{error}</p>}
-      <button onClick={onLogIn}>Log In</button>
+      <button onClick={login}>Log In</button>
     </>
   )
 }
@@ -221,8 +223,8 @@ export default () => {
 import { useAuth } from './services/auth'
 
 export default () => {
-  const { user } = useAuth()
-  return `Welcome ${user?.firstName}!`
+  const auth = useAuth()
+  return `Welcome ${auth?.user?.firstName}!`
 }
 ```
 
